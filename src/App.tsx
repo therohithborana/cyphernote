@@ -70,6 +70,14 @@ function App() {
     window.URL.revokeObjectURL(url);
   };
 
+  const handleClear = () => {
+    // Reset text without saving to undo stack
+    setText('');
+    // Clear both undo and redo stacks
+    setUndoStack([]);
+    setRedoStack([]);
+  };
+
   const formatButton = "px-2 py-1 rounded hover:bg-emerald-900/50 text-emerald-400 transition-colors";
 
   return (
@@ -134,6 +142,14 @@ function App() {
             >
               <Redo className="w-4 h-4" />
             </button>
+            <button
+              onClick={handleClear}
+              disabled={!text}
+              className={`ml-auto ${formatButton} ${!text ? 'opacity-50 cursor-not-allowed' : ''}`}
+              title="Clear text"
+            >
+              <span className="text-xs">Clear</span>
+            </button>
           </div>
 
           <div className="relative">
@@ -159,9 +175,6 @@ function App() {
 
           <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm text-emerald-600 font-mono gap-2">
             <span>{text.length} characters</span>
-            <span>
-              {undoStack.length} undo • {redoStack.length} redo
-            </span>
           </div>
           
           {/* Attribution line */}
