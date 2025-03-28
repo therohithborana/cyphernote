@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Eye, EyeOff, Lock, Copy, Undo, Redo, Download } from 'lucide-react';
 
 function App() {
@@ -80,6 +80,25 @@ function App() {
 
   const formatButton = "px-2 py-1 rounded hover:bg-emerald-900/50 text-emerald-400 transition-colors";
 
+  // Add keyboard shortcut handler for toggling text visibility
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Use Alt+H instead of Ctrl+H to avoid browser history conflict
+      if (e.altKey && e.key.toLowerCase() === 'h') {
+        e.preventDefault(); // Prevent browser's default behavior
+        setIsRevealed(prev => !prev);
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Clean up
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-black p-2 sm:p-6">
       <div className="max-w-2xl mx-auto">
@@ -109,6 +128,7 @@ function App() {
               <button
                 onClick={() => setIsRevealed(!isRevealed)}
                 className="flex items-center gap-1 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-emerald-900/30 text-emerald-400 hover:bg-emerald-900/50 transition-colors font-mono text-sm sm:text-base"
+                title={`${isRevealed ? 'Hide' : 'Show'} text (Alt+H)`}
               >
                 {isRevealed ? (
                   <>
