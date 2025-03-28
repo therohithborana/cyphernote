@@ -73,18 +73,18 @@ function App() {
   const formatButton = "px-2 py-1 rounded hover:bg-emerald-900/50 text-emerald-400 transition-colors";
 
   return (
-    <div className="min-h-screen bg-black p-6">
+    <div className="min-h-screen bg-black p-2 sm:p-6">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-gray-900/50 backdrop-blur rounded-xl shadow-lg shadow-emerald-500/20 p-6 border border-emerald-900/30">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-gray-900/50 backdrop-blur rounded-xl shadow-lg shadow-emerald-500/20 p-3 sm:p-6 border border-emerald-900/30">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
             <div className="flex items-center gap-2">
               <Lock className="w-5 h-5 text-emerald-400" />
-              <h1 className="text-2xl font-mono font-semibold text-emerald-400">Cyphernote</h1>
+              <h1 className="text-xl sm:text-2xl font-mono font-semibold text-emerald-400">Cyphernote</h1>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-900/30 text-emerald-400 hover:bg-emerald-900/50 transition-colors font-mono"
+                className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg bg-emerald-900/30 text-emerald-400 hover:bg-emerald-900/50 transition-colors font-mono text-sm sm:text-base"
                 title="Copy text"
               >
                 <Copy className="w-4 h-4" />
@@ -92,7 +92,7 @@ function App() {
               </button>
               <button
                 onClick={handleSave}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-900/30 text-emerald-400 hover:bg-emerald-900/50 transition-colors font-mono"
+                className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg bg-emerald-900/30 text-emerald-400 hover:bg-emerald-900/50 transition-colors font-mono text-sm sm:text-base"
                 title="Save as file"
               >
                 <Download className="w-4 h-4" />
@@ -100,17 +100,17 @@ function App() {
               </button>
               <button
                 onClick={() => setIsRevealed(!isRevealed)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-900/30 text-emerald-400 hover:bg-emerald-900/50 transition-colors font-mono"
+                className="flex items-center gap-1 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-emerald-900/30 text-emerald-400 hover:bg-emerald-900/50 transition-colors font-mono text-sm sm:text-base"
               >
                 {isRevealed ? (
                   <>
                     <EyeOff className="w-4 h-4" />
-                    <span>Hide Text</span>
+                    <span>Hide</span>
                   </>
                 ) : (
                   <>
                     <Eye className="w-4 h-4" />
-                    <span>Show Text</span>
+                    <span>Show</span>
                   </>
                 )}
               </button>
@@ -141,7 +141,7 @@ function App() {
               ref={textareaRef}
               value={text}
               onChange={handleTextChange}
-              className="w-full h-96 p-4 text-emerald-400 bg-black/50 border border-emerald-900/30 rounded-lg focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 resize-none font-mono placeholder-emerald-700"
+              className="w-full h-64 sm:h-96 p-3 sm:p-4 text-emerald-400 bg-black/50 border border-emerald-900/30 rounded-lg focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 resize-none font-mono placeholder-emerald-700 text-sm sm:text-base"
               placeholder="Type your private text here..."
               spellCheck="true"
               style={{ caretColor: 'rgb(52 211 153)' }}
@@ -149,7 +149,7 @@ function App() {
             {!isRevealed && text && (
               <div 
                 key={text + Date.now()}
-                className="absolute inset-0 pointer-events-none bg-black/50 border border-emerald-900/30 rounded-lg p-4 font-mono text-emerald-400 overflow-auto"
+                className="absolute inset-0 pointer-events-none bg-black/50 border border-emerald-900/30 rounded-lg p-3 sm:p-4 font-mono text-emerald-400 overflow-auto text-sm sm:text-base"
                 style={{ userSelect: 'none' }}
               >
                 {renderScrambledText()}
@@ -157,15 +157,15 @@ function App() {
             )}
           </div>
 
-          <div className="mt-4 flex items-center justify-between text-sm text-emerald-600 font-mono">
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm text-emerald-600 font-mono gap-2">
             <span>{text.length} characters</span>
             <span>
-              {undoStack.length} undo steps • {redoStack.length} redo steps
+              {undoStack.length} undo • {redoStack.length} redo
             </span>
           </div>
           
           {/* Attribution line */}
-          <div className="mt-6 text-center text-emerald-500/70 font-mono" style={{ fontFamily: 'monospace' }}>
+          <div className="mt-4 sm:mt-6 text-center text-emerald-500/70 font-mono text-xs sm:text-sm" style={{ fontFamily: 'monospace' }}>
             Built by{' '}
             <a 
               href="https://www.linkedin.com/in/rohith-borana-b10778266/" 
