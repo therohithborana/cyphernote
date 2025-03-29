@@ -2,7 +2,8 @@
 
 Cyphernote is a secure, privacy-focused notepad application that allows you to write and protect sensitive information. The app features a unique text scrambling mechanism that hides your content from prying eyes.
 
-![Cyphernote Screenshot](screenshot.png)
+![Cyphernote - Google Chrome 2025-03-28 16-23-50 (online-video-cutter com)](https://github.com/user-attachments/assets/1f0b82a8-ab57-4c57-9973-b3d5857b49ce)
+
 
 ## Features
 
