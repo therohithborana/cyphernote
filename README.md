@@ -53,6 +53,3 @@ Cyphernote is a secure, privacy-focused notepad application that allows you to w
 
 4. Open your browser and navigate to `http://localhost:5173`
 
-## Building for Production
-
-To create a production build: 
