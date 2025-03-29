@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Eye, EyeOff, Lock, Copy, Undo, Redo, Download, List, ListOrdered } from 'lucide-react';
+import { Eye, EyeOff, Lock, Copy, Undo, Redo, Download, List, ListOrdered, Info } from 'lucide-react';
 
 function App() {
   const [text, setText] = useState('');
@@ -7,6 +7,7 @@ function App() {
   const [undoStack, setUndoStack] = useState<string[]>([]);
   const [redoStack, setRedoStack] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   const scrambleText = useCallback((input: string) => {
     // Preserve bullet points, numbers, and spaces
@@ -297,6 +298,16 @@ function App() {
             <div className="flex items-center gap-2">
               <Lock className="w-5 h-5 text-emerald-400" />
               <h1 className="text-xl sm:text-2xl font-mono font-semibold text-emerald-400">Cyphernote</h1>
+              
+              {/* Info button without flickering animation */}
+              <button 
+                onClick={() => setShowShortcuts(!showShortcuts)}
+                className="ml-2 relative group"
+                title="Keyboard shortcuts"
+              >
+                <Info className="w-4 h-4 text-emerald-400 opacity-80 hover:opacity-100 transition-opacity" />
+                <span className={`absolute -top-1 -right-1 w-2 h-2 bg-emerald-400 rounded-full ${showShortcuts ? 'opacity-100' : 'opacity-70'}`}></span>
+              </button>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <button
@@ -334,6 +345,20 @@ function App() {
               </button>
             </div>
           </div>
+
+          {/* Shortcuts info panel */}
+          {showShortcuts && (
+            <div className="mb-4 p-3 bg-black/60 border border-emerald-900/50 rounded-lg text-emerald-400 font-mono text-xs sm:text-sm animate-flicker">
+              <h3 className="font-semibold mb-2 text-emerald-300">Keyboard Shortcuts</h3>
+              <ul className="space-y-1">
+                <li><span className="text-emerald-300">Alt + H</span> - Toggle hide/show text</li>
+                <li><span className="text-emerald-300">Alt + B</span> - Insert bullet point</li>
+                <li><span className="text-emerald-300">Alt + N</span> - Insert numbered list</li>
+                <li><span className="text-emerald-300">Enter</span> - Continue list (when in a list)</li>
+                <li><span className="text-emerald-300">Enter</span> on empty list item - Exit list</li>
+              </ul>
+            </div>
+          )}
 
           <div className="flex items-center gap-2 mb-4 p-2 bg-emerald-900/20 rounded-lg">
             <button
