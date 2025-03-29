@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Eye, EyeOff, Lock, Copy, Undo, Redo, Download } from 'lucide-react';
+import { Eye, EyeOff, Lock, Copy, Undo, Redo, Download, List, ListOrdered } from 'lucide-react';
 
 function App() {
   const [text, setText] = useState('');
@@ -9,9 +9,17 @@ function App() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrambleText = useCallback((input: string) => {
+    // Preserve bullet points, numbers, and spaces
     return input
       .split('')
-      .map(() => String.fromCharCode(Math.floor(Math.random() * (126 - 33 + 1)) + 33))
+      .map(char => {
+        // Preserve spaces, bullet points, numbers with periods, and other formatting characters
+        if (/[\s\-\*\•\d\.\(\)\[\]\{\}]/.test(char)) {
+          return char;
+        }
+        // Scramble other characters
+        return String.fromCharCode(Math.floor(Math.random() * (126 - 33 + 1)) + 33);
+      })
       .join('');
   }, []);
 
@@ -80,9 +88,191 @@ function App() {
 
   const formatButton = "px-2 py-1 rounded hover:bg-emerald-900/50 text-emerald-400 transition-colors";
 
+  // Handle special key presses for lists
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Alt+B for bullet list
+    if (e.altKey && e.key.toLowerCase() === 'b') {
+      e.preventDefault();
+      insertBulletPoint();
+      return;
+    }
+    
+    // Alt+N for numbered list
+    if (e.altKey && e.key.toLowerCase() === 'n') {
+      e.preventDefault();
+      insertNumberedItem();
+      return;
+    }
+    
+    // Handle Enter key for list continuation
+    if (e.key === 'Enter' && !e.shiftKey) {
+      const cursorPosition = e.currentTarget.selectionStart;
+      const currentText = text;
+      const currentLine = getCurrentLine(currentText, cursorPosition);
+      
+      // Check for bullet points
+      if (currentLine.match(/^\s*[\-\*\•]\s+/)) {
+        e.preventDefault();
+        const bulletMatch = currentLine.match(/^(\s*)([\-\*\•])(\s+)/);
+        if (bulletMatch) {
+          const [, indent, bullet, space] = bulletMatch;
+          // If the line is empty except for the bullet, remove the bullet
+          if (currentLine.trim() === `${bullet}${space.trimEnd()}`) {
+            removeBullet(cursorPosition);
+          } else {
+            // Continue the bullet list
+            continueBulletList(cursorPosition, indent, bullet, space);
+          }
+        }
+        return;
+      }
+      
+      // Check for numbered lists
+      if (currentLine.match(/^\s*\d+\.\s+/)) {
+        e.preventDefault();
+        const numberMatch = currentLine.match(/^(\s*)(\d+)(\.\s+)/);
+        if (numberMatch) {
+          const [, indent, number, suffix] = numberMatch;
+          // If the line is empty except for the number, remove the number
+          if (currentLine.trim() === `${number}${suffix.trimEnd()}`) {
+            removeNumberedItem(cursorPosition);
+          } else {
+            // Continue the numbered list with incremented number
+            continueNumberedList(cursorPosition, indent, parseInt(number), suffix);
+          }
+        }
+        return;
+      }
+    }
+  };
+
+  // Helper functions for list handling
+  const getCurrentLine = (text: string, cursorPosition: number) => {
+    const textBeforeCursor = text.substring(0, cursorPosition);
+    const lastNewlineIndex = textBeforeCursor.lastIndexOf('\n');
+    const lineStartIndex = lastNewlineIndex === -1 ? 0 : lastNewlineIndex + 1;
+    
+    const textAfterCursor = text.substring(cursorPosition);
+    const nextNewlineIndex = textAfterCursor.indexOf('\n');
+    const lineEndIndex = nextNewlineIndex === -1 
+      ? text.length 
+      : cursorPosition + nextNewlineIndex;
+    
+    return text.substring(lineStartIndex, lineEndIndex);
+  };
+
+  const insertBulletPoint = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    
+    const cursorPosition = textarea.selectionStart;
+    const newText = text.substring(0, cursorPosition) + '• ' + text.substring(cursorPosition);
+    
+    setUndoStack([text, ...undoStack]);
+    setText(newText);
+    
+    // Set cursor position after the bullet point
+    setTimeout(() => {
+      textarea.selectionStart = textarea.selectionEnd = cursorPosition + 2;
+    }, 0);
+  };
+
+  const insertNumberedItem = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    
+    const cursorPosition = textarea.selectionStart;
+    const newText = text.substring(0, cursorPosition) + '1. ' + text.substring(cursorPosition);
+    
+    setUndoStack([text, ...undoStack]);
+    setText(newText);
+    
+    // Set cursor position after the number
+    setTimeout(() => {
+      textarea.selectionStart = textarea.selectionEnd = cursorPosition + 3;
+    }, 0);
+  };
+
+  const continueBulletList = (cursorPosition: number, indent: string, bullet: string, space: string) => {
+    const newText = 
+      text.substring(0, cursorPosition) + 
+      '\n' + indent + bullet + space + 
+      text.substring(cursorPosition);
+    
+    setUndoStack([text, ...undoStack]);
+    setText(newText);
+    
+    // Set cursor position after the new bullet
+    const newCursorPosition = cursorPosition + 1 + indent.length + bullet.length + space.length;
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.selectionStart = textareaRef.current.selectionEnd = newCursorPosition;
+      }
+    }, 0);
+  };
+
+  const continueNumberedList = (cursorPosition: number, indent: string, number: number, suffix: string) => {
+    const nextNumber = number + 1;
+    const newText = 
+      text.substring(0, cursorPosition) + 
+      '\n' + indent + nextNumber + suffix + 
+      text.substring(cursorPosition);
+    
+    setUndoStack([text, ...undoStack]);
+    setText(newText);
+    
+    // Set cursor position after the new number
+    const newCursorPosition = cursorPosition + 1 + indent.length + nextNumber.toString().length + suffix.length;
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.selectionStart = textareaRef.current.selectionEnd = newCursorPosition;
+      }
+    }, 0);
+  };
+
+  const removeBullet = (cursorPosition: number) => {
+    const textBeforeCursor = text.substring(0, cursorPosition);
+    const lastNewlineIndex = textBeforeCursor.lastIndexOf('\n');
+    const lineStartIndex = lastNewlineIndex === -1 ? 0 : lastNewlineIndex + 1;
+    
+    const newText = 
+      text.substring(0, lineStartIndex) + 
+      text.substring(cursorPosition);
+    
+    setUndoStack([text, ...undoStack]);
+    setText(newText);
+    
+    // Set cursor at the beginning of the next line
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.selectionStart = textareaRef.current.selectionEnd = lineStartIndex;
+      }
+    }, 0);
+  };
+
+  const removeNumberedItem = (cursorPosition: number) => {
+    const textBeforeCursor = text.substring(0, cursorPosition);
+    const lastNewlineIndex = textBeforeCursor.lastIndexOf('\n');
+    const lineStartIndex = lastNewlineIndex === -1 ? 0 : lastNewlineIndex + 1;
+    
+    const newText = 
+      text.substring(0, lineStartIndex) + 
+      text.substring(cursorPosition);
+    
+    setUndoStack([text, ...undoStack]);
+    setText(newText);
+    
+    // Set cursor at the beginning of the next line
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.selectionStart = textareaRef.current.selectionEnd = lineStartIndex;
+      }
+    }, 0);
+  };
+
   // Add keyboard shortcut handler for toggling text visibility
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
       // Use Alt+H instead of Ctrl+H to avoid browser history conflict
       if (e.altKey && e.key.toLowerCase() === 'h') {
         e.preventDefault(); // Prevent browser's default behavior
@@ -91,11 +281,11 @@ function App() {
     };
 
     // Add event listener
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleGlobalKeyDown);
 
     // Clean up
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', handleGlobalKeyDown);
     };
   }, []);
 
@@ -162,6 +352,24 @@ function App() {
             >
               <Redo className="w-4 h-4" />
             </button>
+            
+            <div className="h-4 w-px bg-emerald-800/50 mx-1"></div>
+            
+            <button
+              onClick={insertBulletPoint}
+              className={formatButton}
+              title="Bullet List (Alt+B)"
+            >
+              <List className="w-4 h-4" />
+            </button>
+            <button
+              onClick={insertNumberedItem}
+              className={formatButton}
+              title="Numbered List (Alt+N)"
+            >
+              <ListOrdered className="w-4 h-4" />
+            </button>
+            
             <button
               onClick={handleClear}
               disabled={!text}
@@ -177,7 +385,8 @@ function App() {
               ref={textareaRef}
               value={text}
               onChange={handleTextChange}
-              className="w-full h-64 sm:h-96 p-3 sm:p-4 text-emerald-400 bg-black/50 border border-emerald-900/30 rounded-lg focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 resize-none font-mono placeholder-emerald-700 text-sm sm:text-base"
+              onKeyDown={handleKeyDown}
+              className={`w-full h-64 sm:h-96 p-3 sm:p-4 text-emerald-400 ${!isRevealed ? 'text-transparent' : ''} bg-black/50 border border-emerald-900/30 rounded-lg focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 resize-none font-mono placeholder-emerald-700 text-sm sm:text-base`}
               placeholder="Type your private text here..."
               spellCheck="true"
               style={{ caretColor: 'rgb(52 211 153)' }}
